@@ -7,6 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from . import __version__, habits, store
+from .export import to_markdown
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -25,6 +26,9 @@ def build_parser() -> argparse.ArgumentParser:
     n.add_argument("text")
 
     sub.add_parser("notes", help="list learning notes")
+
+    e = sub.add_parser("export", help="export habits and notes as Markdown")
+    e.add_argument("-o", "--output", type=Path, help="write to file instead of stdout")
     return p
 
 
@@ -60,6 +64,13 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
         data["notes"].append({"date": today.isoformat(), "text": args.text})
         store.save(path, data)
         print("Note saved.")
+    elif args.cmd == "export":
+        md = to_markdown(data, today)
+        if args.output:
+            args.output.write_text(md, encoding="utf-8")
+            print(f"Exported to {args.output}")
+        else:
+            print(md, end="")
     elif args.cmd == "notes":
         for item in data["notes"]:
             print(f"{item['date']}  {item['text']}")
