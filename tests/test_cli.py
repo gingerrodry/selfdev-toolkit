@@ -39,3 +39,20 @@ def test_weekly_report(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "coding: ##..... 2/7" in out
     assert "Notes this week: 1" in out
+
+
+def test_target_shown_in_weekly(tmp_path, capsys):
+    run(tmp_path, "check", "coding")
+    run(tmp_path, "target", "coding", "1")
+    capsys.readouterr()
+    run(tmp_path, "weekly")
+    assert "(goal 1: met)" in capsys.readouterr().out
+    run(tmp_path, "target", "coding", "3")
+    capsys.readouterr()
+    run(tmp_path, "weekly")
+    assert "(goal 3: not yet)" in capsys.readouterr().out
+
+
+def test_target_rejects_out_of_range(tmp_path, capsys):
+    assert run(tmp_path, "target", "coding", "9") == 2
+    assert "between 1 and 7" in capsys.readouterr().err

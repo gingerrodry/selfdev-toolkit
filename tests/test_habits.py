@@ -34,3 +34,13 @@ def test_weekly_summary_counts_last_seven_days_only():
     data = {"habits": {"code": ["2026-01-01", "2026-01-04", "2026-01-10"]}, "notes": []}
     # window is 2026-01-04 .. 2026-01-10
     assert habits.weekly_summary(data, date(2026, 1, 10)) == {"code": 2}
+
+
+def test_set_target_validates_range():
+    import pytest
+
+    data = {"habits": {}, "notes": []}
+    habits.set_target(data, "code", 3)
+    assert data["targets"] == {"code": 3}
+    with pytest.raises(ValueError):
+        habits.set_target(data, "code", 0)

@@ -44,3 +44,10 @@ def weekly_summary(data: dict, today: date) -> dict[str, int]:
     for name, days in data["habits"].items():
         result[name] = sum(1 for d in days if start <= date.fromisoformat(d) <= today)
     return result
+
+
+def set_target(data: dict, name: str, per_week: int) -> None:
+    """Set a weekly goal (1-7 check-ins) for a habit."""
+    if not 1 <= per_week <= 7:
+        raise ValueError("target must be between 1 and 7 per week")
+    data.setdefault("targets", {})[name] = per_week

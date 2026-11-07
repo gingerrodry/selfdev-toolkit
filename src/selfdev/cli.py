@@ -20,6 +20,9 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("habit")
 
     sub.add_parser("status", help="show streaks for all habits")
+    t = sub.add_parser("target", help="set a weekly goal for a habit (1-7)")
+    t.add_argument("habit")
+    t.add_argument("per_week", type=int)
     sub.add_parser("weekly", help="show check-ins for the last 7 days")
 
     n = sub.add_parser("note", help="add a learning note")
@@ -52,12 +55,24 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             cur = habits.current_streak(days, today)
             best = habits.longest_streak(days)
             print(f"{name}: current {cur} / best {best} / total {len(days)}")
+    elif args.cmd == "target":
+        try:
+            habits.set_target(data, args.habit, args.per_week)
+        except ValueError as err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Target for '{args.habit}': {args.per_week}/week")
     elif args.cmd == "weekly":
         summary = habits.weekly_summary(data, today)
         if not summary:
             print("No habits yet. Try: selfdev check coding")
         for name, count in sorted(summary.items()):
-            print(f"{name}: {'#' * count}{'.' * (7 - count)} {count}/7")
+            goal = data["targets"].get(name)
+            suffix = ""
+            if goal:
+                suffix = f" (goal {goal}: {'met' if count >= goal else 'not yet'})"
+            print(f"{name}: {'#' * count}{'.' * (7 - count)} {count}/7{suffix}")
         notes = [n for n in data["notes"] if (today - date.fromisoformat(n["date"])).days < 7]
         print(f"Notes this week: {len(notes)}")
     elif args.cmd == "note":

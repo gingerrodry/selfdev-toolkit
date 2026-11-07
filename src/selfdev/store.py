@@ -14,11 +14,12 @@ def default_path() -> Path:
 
 def load(path: Path) -> dict:
     if not path.exists():
-        return {"habits": {}, "notes": []}
+        return {"habits": {}, "notes": [], "targets": {}}
     with path.open(encoding="utf-8") as f:
         data = json.load(f)
     data.setdefault("habits", {})
     data.setdefault("notes", [])
+    data.setdefault("targets", {})
     return data
 
 

@@ -18,6 +18,7 @@ selfdev status                  # current / best streak and totals
 selfdev note "learned argparse subcommands"
 selfdev notes                   # list learning notes
 selfdev weekly                  # check-ins over the last 7 days
+selfdev target coding 3         # weekly goal; shown in `weekly`
 selfdev export -o report.md    # Markdown report (stdout if -o omitted)
 ```
 
@@ -44,7 +45,7 @@ CI runs the tests on Python 3.10 and 3.12.
 
 - [x] Weekly summary report (`selfdev weekly`)
 - [x] Export notes to Markdown (`selfdev export`)
-- [ ] Per-habit targets (e.g. 3x per week)
+- [x] Per-habit weekly targets (`selfdev target`)
 
 ## License
 
