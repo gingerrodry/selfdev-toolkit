@@ -35,3 +35,12 @@ def longest_streak(days: list[str]) -> int:
         best = max(best, run)
         prev = d
     return best
+
+
+def weekly_summary(data: dict, today: date) -> dict[str, int]:
+    """Check-ins per habit over the 7 days ending today (inclusive)."""
+    start = today - timedelta(days=6)
+    result = {}
+    for name, days in data["habits"].items():
+        result[name] = sum(1 for d in days if start <= date.fromisoformat(d) <= today)
+    return result

@@ -28,3 +28,9 @@ def test_longest_streak():
     days = ["2026-01-01", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07"]
     assert habits.longest_streak(days) == 3
     assert habits.longest_streak([]) == 0
+
+
+def test_weekly_summary_counts_last_seven_days_only():
+    data = {"habits": {"code": ["2026-01-01", "2026-01-04", "2026-01-10"]}, "notes": []}
+    # window is 2026-01-04 .. 2026-01-10
+    assert habits.weekly_summary(data, date(2026, 1, 10)) == {"code": 2}

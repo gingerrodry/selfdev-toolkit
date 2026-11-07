@@ -28,3 +28,14 @@ def test_notes(tmp_path, capsys):
     capsys.readouterr()
     run(tmp_path, "notes")
     assert "2026-01-10  learned argparse subcommands" in capsys.readouterr().out
+
+
+def test_weekly_report(tmp_path, capsys):
+    run(tmp_path, "check", "coding", today=date(2026, 1, 9))
+    run(tmp_path, "check", "coding")
+    run(tmp_path, "note", "weekly test")
+    capsys.readouterr()
+    run(tmp_path, "weekly")
+    out = capsys.readouterr().out
+    assert "coding: ##..... 2/7" in out
+    assert "Notes this week: 1" in out

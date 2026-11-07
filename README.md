@@ -17,6 +17,7 @@ selfdev check coding            # check in a habit for today
 selfdev status                  # current / best streak and totals
 selfdev note "learned argparse subcommands"
 selfdev notes                   # list learning notes
+selfdev weekly                  # check-ins over the last 7 days
 ```
 
 Data lives in `~/.selfdev/data.json`. Override with `--data PATH` or the `SELFDEV_DATA` environment variable.
@@ -40,7 +41,7 @@ CI runs the tests on Python 3.10 and 3.12.
 
 ## Roadmap
 
-- [ ] Weekly summary report
+- [x] Weekly summary report (`selfdev weekly`)
 - [ ] Export notes to Markdown
 - [ ] Per-habit targets (e.g. 3x per week)
 

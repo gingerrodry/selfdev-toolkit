@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("habit")
 
     sub.add_parser("status", help="show streaks for all habits")
+    sub.add_parser("weekly", help="show check-ins for the last 7 days")
 
     n = sub.add_parser("note", help="add a learning note")
     n.add_argument("text")
@@ -47,6 +48,14 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             cur = habits.current_streak(days, today)
             best = habits.longest_streak(days)
             print(f"{name}: current {cur} / best {best} / total {len(days)}")
+    elif args.cmd == "weekly":
+        summary = habits.weekly_summary(data, today)
+        if not summary:
+            print("No habits yet. Try: selfdev check coding")
+        for name, count in sorted(summary.items()):
+            print(f"{name}: {'#' * count}{'.' * (7 - count)} {count}/7")
+        notes = [n for n in data["notes"] if (today - date.fromisoformat(n["date"])).days < 7]
+        print(f"Notes this week: {len(notes)}")
     elif args.cmd == "note":
         data["notes"].append({"date": today.isoformat(), "text": args.text})
         store.save(path, data)
