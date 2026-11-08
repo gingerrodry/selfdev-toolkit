@@ -56,3 +56,14 @@ def test_target_shown_in_weekly(tmp_path, capsys):
 def test_target_rejects_out_of_range(tmp_path, capsys):
     assert run(tmp_path, "target", "coding", "9") == 2
     assert "between 1 and 7" in capsys.readouterr().err
+
+
+def test_rename_and_remove_via_cli(tmp_path, capsys):
+    run(tmp_path, "check", "old")
+    assert run(tmp_path, "rename", "old", "new") == 0
+    assert run(tmp_path, "rename", "old", "x") == 2
+    capsys.readouterr()
+    run(tmp_path, "status")
+    assert "new: current 1" in capsys.readouterr().out
+    assert run(tmp_path, "remove", "new") == 0
+    assert run(tmp_path, "remove", "new") == 2

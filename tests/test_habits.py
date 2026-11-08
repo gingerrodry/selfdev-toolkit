@@ -44,3 +44,22 @@ def test_set_target_validates_range():
     assert data["targets"] == {"code": 3}
     with pytest.raises(ValueError):
         habits.set_target(data, "code", 0)
+
+
+def test_remove_habit_drops_target_too():
+    data = {"habits": {"a": ["2026-01-01"]}, "notes": [], "targets": {"a": 2}}
+    assert habits.remove_habit(data, "a") is True
+    assert data["habits"] == {} and data["targets"] == {}
+    assert habits.remove_habit(data, "a") is False
+
+
+def test_rename_habit_keeps_history_and_target():
+    import pytest
+
+    data = {"habits": {"a": ["2026-01-01"], "b": []}, "notes": [], "targets": {"a": 2}}
+    habits.rename_habit(data, "a", "c")
+    assert data["habits"]["c"] == ["2026-01-01"] and data["targets"] == {"c": 2}
+    with pytest.raises(ValueError):
+        habits.rename_habit(data, "c", "b")
+    with pytest.raises(KeyError):
+        habits.rename_habit(data, "zzz", "y")

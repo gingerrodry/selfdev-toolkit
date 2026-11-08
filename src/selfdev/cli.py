@@ -23,6 +23,11 @@ def build_parser() -> argparse.ArgumentParser:
     t = sub.add_parser("target", help="set a weekly goal for a habit (1-7)")
     t.add_argument("habit")
     t.add_argument("per_week", type=int)
+    r = sub.add_parser("remove", help="delete a habit and its history")
+    r.add_argument("habit")
+    m = sub.add_parser("rename", help="rename a habit, keeping its history")
+    m.add_argument("old")
+    m.add_argument("new")
     sub.add_parser("weekly", help="show check-ins for the last 7 days")
 
     n = sub.add_parser("note", help="add a learning note")
@@ -63,6 +68,23 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             return 2
         store.save(path, data)
         print(f"Target for '{args.habit}': {args.per_week}/week")
+    elif args.cmd == "remove":
+        if not habits.remove_habit(data, args.habit):
+            print(f"error: no such habit '{args.habit}'", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Removed '{args.habit}'.")
+    elif args.cmd == "rename":
+        try:
+            habits.rename_habit(data, args.old, args.new)
+        except KeyError:
+            print(f"error: no such habit '{args.old}'", file=sys.stderr)
+            return 2
+        except ValueError as err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Renamed '{args.old}' -> '{args.new}'.")
     elif args.cmd == "weekly":
         summary = habits.weekly_summary(data, today)
         if not summary:

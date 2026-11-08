@@ -51,3 +51,24 @@ def set_target(data: dict, name: str, per_week: int) -> None:
     if not 1 <= per_week <= 7:
         raise ValueError("target must be between 1 and 7 per week")
     data.setdefault("targets", {})[name] = per_week
+
+
+def remove_habit(data: dict, name: str) -> bool:
+    """Delete a habit and its target. Returns False if it does not exist."""
+    if name not in data["habits"]:
+        return False
+    del data["habits"][name]
+    data.get("targets", {}).pop(name, None)
+    return True
+
+
+def rename_habit(data: dict, old: str, new: str) -> None:
+    """Rename a habit, carrying its history and target over."""
+    if old not in data["habits"]:
+        raise KeyError(old)
+    if new in data["habits"]:
+        raise ValueError(f"habit '{new}' already exists")
+    data["habits"][new] = data["habits"].pop(old)
+    targets = data.setdefault("targets", {})
+    if old in targets:
+        targets[new] = targets.pop(old)
