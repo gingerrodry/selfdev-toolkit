@@ -15,6 +15,7 @@ pip install -e ".[dev]"
 ```bash
 selfdev check coding            # check in a habit for today
 selfdev status                  # current / best streak and totals
+selfdev status --json          # machine-readable (also: weekly --json)
 selfdev note "learned argparse subcommands"
 selfdev notes                   # list learning notes
 selfdev weekly                  # check-ins over the last 7 days
@@ -49,7 +50,7 @@ CI runs the tests on Python 3.10 and 3.12.
 - [x] Export notes to Markdown (`selfdev export`)
 - [x] Per-habit weekly targets (`selfdev target`)
 - [x] Remove and rename habits (`selfdev remove`, `selfdev rename`)
-- [ ] `--json` output for status and weekly
+- [x] `--json` output for status and weekly
 - [ ] Monthly report
 - [ ] Type hints and lint (ruff) in CI
 

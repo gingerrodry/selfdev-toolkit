@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import date
 from pathlib import Path
@@ -19,7 +20,8 @@ def build_parser() -> argparse.ArgumentParser:
     c = sub.add_parser("check", help="check in a habit for today")
     c.add_argument("habit")
 
-    sub.add_parser("status", help="show streaks for all habits")
+    st = sub.add_parser("status", help="show streaks for all habits")
+    st.add_argument("--json", action="store_true", help="machine-readable output")
     t = sub.add_parser("target", help="set a weekly goal for a habit (1-7)")
     t.add_argument("habit")
     t.add_argument("per_week", type=int)
@@ -28,7 +30,8 @@ def build_parser() -> argparse.ArgumentParser:
     m = sub.add_parser("rename", help="rename a habit, keeping its history")
     m.add_argument("old")
     m.add_argument("new")
-    sub.add_parser("weekly", help="show check-ins for the last 7 days")
+    wk = sub.add_parser("weekly", help="show check-ins for the last 7 days")
+    wk.add_argument("--json", action="store_true", help="machine-readable output")
 
     n = sub.add_parser("note", help="add a learning note")
     n.add_argument("text")
@@ -53,6 +56,16 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             print(f"Checked in '{args.habit}'. Streak: {streak} day(s)")
         else:
             print(f"'{args.habit}' is already checked in today.")
+    elif args.cmd == "status" and args.json:
+        out = {
+            name: {
+                "current": habits.current_streak(days, today),
+                "best": habits.longest_streak(days),
+                "total": len(days),
+            }
+            for name, days in sorted(data["habits"].items())
+        }
+        print(json.dumps(out, ensure_ascii=False, indent=2))
     elif args.cmd == "status":
         if not data["habits"]:
             print("No habits yet. Try: selfdev check coding")
@@ -85,6 +98,13 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             return 2
         store.save(path, data)
         print(f"Renamed '{args.old}' -> '{args.new}'.")
+    elif args.cmd == "weekly" and args.json:
+        summary = habits.weekly_summary(data, today)
+        out = {
+            name: {"count": count, "goal": data["targets"].get(name)}
+            for name, count in sorted(summary.items())
+        }
+        print(json.dumps(out, ensure_ascii=False, indent=2))
     elif args.cmd == "weekly":
         summary = habits.weekly_summary(data, today)
         if not summary:
