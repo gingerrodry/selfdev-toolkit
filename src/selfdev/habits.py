@@ -72,3 +72,17 @@ def rename_habit(data: dict, old: str, new: str) -> None:
     targets = data.setdefault("targets", {})
     if old in targets:
         targets[new] = targets.pop(old)
+
+
+def monthly_summary(data: dict, year: int, month: int) -> dict[str, int]:
+    """Check-ins per habit in the given calendar month."""
+    prefix = f"{year:04d}-{month:02d}-"
+    return {
+        name: sum(1 for d in days if d.startswith(prefix))
+        for name, days in data["habits"].items()
+    }
+
+
+def days_in_month(year: int, month: int) -> int:
+    nxt = date(year + (month == 12), month % 12 + 1, 1)
+    return (nxt - date(year, month, 1)).days

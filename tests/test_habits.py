@@ -63,3 +63,11 @@ def test_rename_habit_keeps_history_and_target():
         habits.rename_habit(data, "c", "b")
     with pytest.raises(KeyError):
         habits.rename_habit(data, "zzz", "y")
+
+
+def test_monthly_summary_and_days_in_month():
+    data = {"habits": {"a": ["2026-01-31", "2026-02-01", "2026-02-15"]}, "notes": []}
+    assert habits.monthly_summary(data, 2026, 2) == {"a": 2}
+    assert habits.days_in_month(2026, 2) == 28
+    assert habits.days_in_month(2028, 2) == 29
+    assert habits.days_in_month(2026, 12) == 31

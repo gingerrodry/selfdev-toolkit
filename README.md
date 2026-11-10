@@ -19,6 +19,7 @@ selfdev status --json          # machine-readable (also: weekly --json)
 selfdev note "learned argparse subcommands"
 selfdev notes                   # list learning notes
 selfdev weekly                  # check-ins over the last 7 days
+selfdev monthly --month 2026-11 # per-habit monthly completion rate
 selfdev target coding 3         # weekly goal; shown in `weekly`
 selfdev rename coding dev      # rename a habit (history kept)
 selfdev remove dev              # delete a habit
@@ -51,7 +52,7 @@ CI runs the tests on Python 3.10 and 3.12.
 - [x] Per-habit weekly targets (`selfdev target`)
 - [x] Remove and rename habits (`selfdev remove`, `selfdev rename`)
 - [x] `--json` output for status and weekly
-- [ ] Monthly report
+- [x] Monthly report (`selfdev monthly`)
 - [ ] Type hints and lint (ruff) in CI
 
 ## License

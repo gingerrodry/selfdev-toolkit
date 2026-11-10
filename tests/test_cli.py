@@ -88,3 +88,21 @@ def test_weekly_json_includes_goal(tmp_path, capsys):
     capsys.readouterr()
     run(tmp_path, "weekly", "--json")
     assert json.loads(capsys.readouterr().out) == {"code": {"count": 1, "goal": 3}}
+
+
+def test_monthly_report(tmp_path, capsys):
+    run(tmp_path, "check", "code", today=date(2026, 1, 3))
+    run(tmp_path, "check", "code", today=date(2026, 1, 4))
+    capsys.readouterr()
+    run(tmp_path, "monthly")
+    out = capsys.readouterr().out
+    assert "Report for 2026-01 (31 days)" in out
+    assert "code: 2/31 (6%)" in out
+    run(tmp_path, "monthly", "--month", "2025-12")
+    assert "code: 0/31 (0%)" in capsys.readouterr().out
+
+
+def test_monthly_rejects_bad_month(tmp_path, capsys):
+    assert run(tmp_path, "monthly", "--month", "nope") == 2
+    assert run(tmp_path, "monthly", "--month", "2026-13") == 2
+    assert "2026-11" in capsys.readouterr().err

@@ -30,6 +30,8 @@ def build_parser() -> argparse.ArgumentParser:
     m = sub.add_parser("rename", help="rename a habit, keeping its history")
     m.add_argument("old")
     m.add_argument("new")
+    mo = sub.add_parser("monthly", help="show check-ins for a calendar month")
+    mo.add_argument("--month", help="YYYY-MM (default: current month)")
     wk = sub.add_parser("weekly", help="show check-ins for the last 7 days")
     wk.add_argument("--json", action="store_true", help="machine-readable output")
 
@@ -98,6 +100,24 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             return 2
         store.save(path, data)
         print(f"Renamed '{args.old}' -> '{args.new}'.")
+    elif args.cmd == "monthly":
+        try:
+            year, month = (
+                map(int, args.month.split("-")) if args.month else (today.year, today.month)
+            )
+            total = habits.days_in_month(year, month)
+        except (ValueError, TypeError):
+            print("error: --month must look like 2026-11", file=sys.stderr)
+            return 2
+        summary = habits.monthly_summary(data, year, month)
+        print(f"Report for {year:04d}-{month:02d} ({total} days)")
+        if not summary:
+            print("No habits yet. Try: selfdev check coding")
+        for name, count in sorted(summary.items()):
+            pct = round(100 * count / total)
+            print(f"{name}: {count}/{total} ({pct}%)")
+        notes = [n for n in data["notes"] if n["date"].startswith(f"{year:04d}-{month:02d}-")]
+        print(f"Notes: {len(notes)}")
     elif args.cmd == "weekly" and args.json:
         summary = habits.weekly_summary(data, today)
         out = {
