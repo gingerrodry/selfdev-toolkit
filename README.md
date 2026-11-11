@@ -40,10 +40,12 @@ A streak stays alive if you haven't checked in yet today but did yesterday.
 
 ```bash
 pip install -e ".[dev]"
+ruff check .
+mypy src
 pytest
 ```
 
-CI runs the tests on Python 3.10 and 3.12.
+CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 
 ## Roadmap
 
@@ -53,7 +55,7 @@ CI runs the tests on Python 3.10 and 3.12.
 - [x] Remove and rename habits (`selfdev remove`, `selfdev rename`)
 - [x] `--json` output for status and weekly
 - [x] Monthly report (`selfdev monthly`)
-- [ ] Type hints and lint (ruff) in CI
+- [x] Type hints and lint (ruff, mypy --strict) in CI
 
 ## License
 

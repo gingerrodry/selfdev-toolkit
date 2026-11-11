@@ -4,9 +4,10 @@ from __future__ import annotations
 from datetime import date
 
 from . import habits
+from .store import Data
 
 
-def to_markdown(data: dict, today: date) -> str:
+def to_markdown(data: Data, today: date) -> str:
     lines = [f"# selfdev report ({today.isoformat()})", "", "## Habits", ""]
     if data["habits"]:
         lines += ["| Habit | Current | Best | Total |", "|---|---|---|---|"]

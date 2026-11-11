@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from .store import Data
 
-def check_in(data: dict, name: str, day: date) -> bool:
+
+def check_in(data: Data, name: str, day: date) -> bool:
     """Record a check-in. Returns False if the day was already recorded."""
     days = data["habits"].setdefault(name, [])
     iso = day.isoformat()
@@ -37,7 +39,7 @@ def longest_streak(days: list[str]) -> int:
     return best
 
 
-def weekly_summary(data: dict, today: date) -> dict[str, int]:
+def weekly_summary(data: Data, today: date) -> dict[str, int]:
     """Check-ins per habit over the 7 days ending today (inclusive)."""
     start = today - timedelta(days=6)
     result = {}
@@ -46,14 +48,14 @@ def weekly_summary(data: dict, today: date) -> dict[str, int]:
     return result
 
 
-def set_target(data: dict, name: str, per_week: int) -> None:
+def set_target(data: Data, name: str, per_week: int) -> None:
     """Set a weekly goal (1-7 check-ins) for a habit."""
     if not 1 <= per_week <= 7:
         raise ValueError("target must be between 1 and 7 per week")
     data.setdefault("targets", {})[name] = per_week
 
 
-def remove_habit(data: dict, name: str) -> bool:
+def remove_habit(data: Data, name: str) -> bool:
     """Delete a habit and its target. Returns False if it does not exist."""
     if name not in data["habits"]:
         return False
@@ -62,7 +64,7 @@ def remove_habit(data: dict, name: str) -> bool:
     return True
 
 
-def rename_habit(data: dict, old: str, new: str) -> None:
+def rename_habit(data: Data, old: str, new: str) -> None:
     """Rename a habit, carrying its history and target over."""
     if old not in data["habits"]:
         raise KeyError(old)
@@ -74,7 +76,7 @@ def rename_habit(data: dict, old: str, new: str) -> None:
         targets[new] = targets.pop(old)
 
 
-def monthly_summary(data: dict, year: int, month: int) -> dict[str, int]:
+def monthly_summary(data: Data, year: int, month: int) -> dict[str, int]:
     """Check-ins per habit in the given calendar month."""
     prefix = f"{year:04d}-{month:02d}-"
     return {
