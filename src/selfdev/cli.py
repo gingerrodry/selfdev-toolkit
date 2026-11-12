@@ -38,7 +38,8 @@ def build_parser() -> argparse.ArgumentParser:
     n = sub.add_parser("note", help="add a learning note")
     n.add_argument("text")
 
-    sub.add_parser("notes", help="list learning notes")
+    ns = sub.add_parser("notes", help="list learning notes")
+    ns.add_argument("-s", "--search", help="only notes containing this text (case-insensitive)")
 
     e = sub.add_parser("export", help="export habits and notes as Markdown")
     e.add_argument("-o", "--output", type=Path, help="write to file instead of stdout")
@@ -149,7 +150,10 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
         else:
             print(md, end="")
     elif args.cmd == "notes":
-        for item in data["notes"]:
+        shown = habits.search_notes(data, args.search) if args.search else data["notes"]
+        if args.search and not shown:
+            print(f"No notes matching '{args.search}'.")
+        for item in shown:
             print(f"{item['date']}  {item['text']}")
     return 0
 

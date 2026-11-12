@@ -88,3 +88,10 @@ def monthly_summary(data: Data, year: int, month: int) -> dict[str, int]:
 def days_in_month(year: int, month: int) -> int:
     nxt = date(year + (month == 12), month % 12 + 1, 1)
     return (nxt - date(year, month, 1)).days
+
+
+def search_notes(data: Data, query: str) -> list[dict[str, str]]:
+    """Notes whose text contains the query (case-insensitive), oldest first."""
+    q = query.casefold()
+    hits = [n for n in data["notes"] if q in n["text"].casefold()]
+    return sorted(hits, key=lambda n: n["date"])

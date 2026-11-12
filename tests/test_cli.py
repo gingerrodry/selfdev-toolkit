@@ -106,3 +106,14 @@ def test_monthly_rejects_bad_month(tmp_path, capsys):
     assert run(tmp_path, "monthly", "--month", "nope") == 2
     assert run(tmp_path, "monthly", "--month", "2026-13") == 2
     assert "2026-11" in capsys.readouterr().err
+
+
+def test_notes_search(tmp_path, capsys):
+    run(tmp_path, "note", "learned argparse")
+    run(tmp_path, "note", "pytest fixtures")
+    capsys.readouterr()
+    run(tmp_path, "notes", "--search", "PYTEST")
+    out = capsys.readouterr().out
+    assert "pytest fixtures" in out and "argparse" not in out
+    run(tmp_path, "notes", "-s", "nothing")
+    assert "No notes matching 'nothing'." in capsys.readouterr().out

@@ -71,3 +71,18 @@ def test_monthly_summary_and_days_in_month():
     assert habits.days_in_month(2026, 2) == 28
     assert habits.days_in_month(2028, 2) == 29
     assert habits.days_in_month(2026, 12) == 31
+
+
+def test_search_notes_is_case_insensitive_and_sorted():
+    data = {
+        "habits": {},
+        "targets": {},
+        "notes": [
+            {"date": "2026-01-03", "text": "Learned Argparse"},
+            {"date": "2026-01-01", "text": "argparse subcommands"},
+            {"date": "2026-01-02", "text": "pytest fixtures"},
+        ],
+    }
+    hits = habits.search_notes(data, "ARGPARSE")
+    assert [n["date"] for n in hits] == ["2026-01-01", "2026-01-03"]
+    assert habits.search_notes(data, "zzz") == []
