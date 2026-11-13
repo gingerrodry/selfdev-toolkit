@@ -86,3 +86,16 @@ def test_search_notes_is_case_insensitive_and_sorted():
     hits = habits.search_notes(data, "ARGPARSE")
     assert [n["date"] for n in hits] == ["2026-01-01", "2026-01-03"]
     assert habits.search_notes(data, "zzz") == []
+
+
+def test_normalize_tags():
+    assert habits.normalize_tags([" #Python", "python", "", "CLI"]) == ["python", "cli"]
+
+
+def test_filter_by_tag_handles_legacy_notes():
+    notes = [
+        {"date": "2026-01-01", "text": "a"},
+        {"date": "2026-01-02", "text": "b", "tags": ["x"]},
+    ]
+    assert habits.filter_by_tag(notes, "#X") == [notes[1]]
+    assert habits.filter_by_tag(notes, "  ") == []

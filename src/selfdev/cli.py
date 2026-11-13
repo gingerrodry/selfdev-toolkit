@@ -37,9 +37,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     n = sub.add_parser("note", help="add a learning note")
     n.add_argument("text")
+    n.add_argument("-t", "--tag", action="append", default=[], help="tag (repeatable)")
 
     ns = sub.add_parser("notes", help="list learning notes")
     ns.add_argument("-s", "--search", help="only notes containing this text (case-insensitive)")
+    ns.add_argument("-t", "--tag", help="only notes with this tag")
 
     e = sub.add_parser("export", help="export habits and notes as Markdown")
     e.add_argument("-o", "--output", type=Path, help="write to file instead of stdout")
@@ -139,7 +141,11 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
         notes = [n for n in data["notes"] if (today - date.fromisoformat(n["date"])).days < 7]
         print(f"Notes this week: {len(notes)}")
     elif args.cmd == "note":
-        data["notes"].append({"date": today.isoformat(), "text": args.text})
+        note = {"date": today.isoformat(), "text": args.text}
+        tags = habits.normalize_tags(args.tag)
+        if tags:
+            note["tags"] = tags
+        data["notes"].append(note)
         store.save(path, data)
         print("Note saved.")
     elif args.cmd == "export":
@@ -151,10 +157,13 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             print(md, end="")
     elif args.cmd == "notes":
         shown = habits.search_notes(data, args.search) if args.search else data["notes"]
-        if args.search and not shown:
-            print(f"No notes matching '{args.search}'.")
+        if args.tag:
+            shown = habits.filter_by_tag(shown, args.tag)
+        if (args.search or args.tag) and not shown:
+            print("No matching notes.")
         for item in shown:
-            print(f"{item['date']}  {item['text']}")
+            suffix = "".join(f" #{t}" for t in item.get("tags", []))
+            print(f"{item['date']}  {item['text']}{suffix}")
     return 0
 
 

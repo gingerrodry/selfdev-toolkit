@@ -116,4 +116,19 @@ def test_notes_search(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "pytest fixtures" in out and "argparse" not in out
     run(tmp_path, "notes", "-s", "nothing")
-    assert "No notes matching 'nothing'." in capsys.readouterr().out
+    assert "No matching notes." in capsys.readouterr().out
+
+
+def test_note_tags_and_filter(tmp_path, capsys):
+    run(tmp_path, "note", "learned argparse", "-t", "Python", "--tag", "#cli", "-t", "python")
+    run(tmp_path, "note", "old untagged note")
+    capsys.readouterr()
+    run(tmp_path, "notes")
+    out = capsys.readouterr().out
+    assert "learned argparse #python #cli" in out
+    assert "old untagged note\n" in out
+    run(tmp_path, "notes", "--tag", "CLI")
+    out = capsys.readouterr().out
+    assert "learned argparse" in out and "untagged" not in out
+    run(tmp_path, "notes", "-t", "missing")
+    assert "No matching notes." in capsys.readouterr().out

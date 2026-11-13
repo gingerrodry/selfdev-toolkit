@@ -16,9 +16,10 @@ pip install -e ".[dev]"
 selfdev check coding            # check in a habit for today
 selfdev status                  # current / best streak and totals
 selfdev status --json          # machine-readable (also: weekly --json)
-selfdev note "learned argparse subcommands"
+selfdev note "learned argparse subcommands" -t python -t cli
 selfdev notes                   # list learning notes
 selfdev notes -s argparse       # search notes (case-insensitive)
+selfdev notes -t python         # only notes with a tag
 selfdev weekly                  # check-ins over the last 7 days
 selfdev monthly --month 2026-11 # per-habit monthly completion rate
 selfdev target coding 3         # weekly goal; shown in `weekly`
@@ -58,7 +59,7 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Monthly report (`selfdev monthly`)
 - [x] Type hints and lint (ruff, mypy --strict) in CI
 - [x] Search notes (`selfdev notes --search`)
-- [ ] Tags for notes
+- [x] Tags for notes (`selfdev note -t`, `selfdev notes -t`)
 - [ ] CSV import/export
 - [ ] Habit archive (hide without deleting)
 - [ ] Shell completion

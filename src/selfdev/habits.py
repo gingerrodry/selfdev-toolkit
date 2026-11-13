@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from typing import Any
 
 from .store import Data
 
@@ -90,8 +91,26 @@ def days_in_month(year: int, month: int) -> int:
     return (nxt - date(year, month, 1)).days
 
 
-def search_notes(data: Data, query: str) -> list[dict[str, str]]:
+def search_notes(data: Data, query: str) -> list[dict[str, Any]]:
     """Notes whose text contains the query (case-insensitive), oldest first."""
     q = query.casefold()
     hits = [n for n in data["notes"] if q in n["text"].casefold()]
     return sorted(hits, key=lambda n: n["date"])
+
+
+def normalize_tags(tags: list[str]) -> list[str]:
+    """Lowercase, strip a leading '#', drop empties and duplicates (order kept)."""
+    seen: list[str] = []
+    for t in tags:
+        t = t.strip().lstrip("#").casefold()
+        if t and t not in seen:
+            seen.append(t)
+    return seen
+
+
+def filter_by_tag(notes: list[dict[str, Any]], tag: str) -> list[dict[str, Any]]:
+    """Notes carrying the tag. Notes saved before tags existed have none."""
+    wanted = normalize_tags([tag])
+    if not wanted:
+        return []
+    return [n for n in notes if wanted[0] in n.get("tags", [])]
