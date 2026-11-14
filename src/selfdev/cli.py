@@ -22,6 +22,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     st = sub.add_parser("status", help="show streaks for all habits")
     st.add_argument("--json", action="store_true", help="machine-readable output")
+    st.add_argument("--all", action="store_true", help="include archived habits")
+    ar = sub.add_parser("archive", help="hide a habit from reports (history is kept)")
+    ar.add_argument("habit")
+    ua = sub.add_parser("unarchive", help="bring an archived habit back")
+    ua.add_argument("habit")
     t = sub.add_parser("target", help="set a weekly goal for a habit (1-7)")
     t.add_argument("habit")
     t.add_argument("per_week", type=int)
@@ -55,29 +60,52 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
     data = store.load(path)
 
     if args.cmd == "check":
+        if args.habit in data["archived"]:
+            print(
+                f"error: '{args.habit}' is archived. Run: selfdev unarchive {args.habit}",
+                file=sys.stderr,
+            )
+            return 2
         if habits.check_in(data, args.habit, today):
             store.save(path, data)
             streak = habits.current_streak(data["habits"][args.habit], today)
             print(f"Checked in '{args.habit}'. Streak: {streak} day(s)")
         else:
             print(f"'{args.habit}' is already checked in today.")
+    elif args.cmd == "archive":
+        try:
+            changed = habits.archive_habit(data, args.habit)
+        except KeyError:
+            print(f"error: no such habit '{args.habit}'", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Archived '{args.habit}'." if changed else f"'{args.habit}' is already archived.")
+    elif args.cmd == "unarchive":
+        if not habits.unarchive_habit(data, args.habit):
+            print(f"error: '{args.habit}' is not archived", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Unarchived '{args.habit}'.")
     elif args.cmd == "status" and args.json:
+        shown = data["habits"] if args.all else habits.active_habits(data)
         out = {
             name: {
                 "current": habits.current_streak(days, today),
                 "best": habits.longest_streak(days),
                 "total": len(days),
             }
-            for name, days in sorted(data["habits"].items())
+            for name, days in sorted(shown.items())
         }
         print(json.dumps(out, ensure_ascii=False, indent=2))
     elif args.cmd == "status":
-        if not data["habits"]:
+        shown = data["habits"] if args.all else habits.active_habits(data)
+        if not shown:
             print("No habits yet. Try: selfdev check coding")
-        for name, days in sorted(data["habits"].items()):
+        for name, days in sorted(shown.items()):
             cur = habits.current_streak(days, today)
             best = habits.longest_streak(days)
-            print(f"{name}: current {cur} / best {best} / total {len(days)}")
+            mark = " [archived]" if name in data["archived"] else ""
+            print(f"{name}: current {cur} / best {best} / total {len(days)}{mark}")
     elif args.cmd == "target":
         try:
             habits.set_target(data, args.habit, args.per_week)

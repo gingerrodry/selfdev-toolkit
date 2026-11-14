@@ -25,6 +25,8 @@ selfdev monthly --month 2026-11 # per-habit monthly completion rate
 selfdev target coding 3         # weekly goal; shown in `weekly`
 selfdev rename coding dev      # rename a habit (history kept)
 selfdev remove dev              # delete a habit
+selfdev archive dev             # hide from reports, keep history (status --all shows it)
+selfdev unarchive dev           # bring it back
 selfdev export -o report.md    # Markdown report (stdout if -o omitted)
 ```
 
@@ -61,7 +63,7 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Search notes (`selfdev notes --search`)
 - [x] Tags for notes (`selfdev note -t`, `selfdev notes -t`)
 - [ ] CSV import/export
-- [ ] Habit archive (hide without deleting)
+- [x] Habit archive (`selfdev archive`, `selfdev unarchive`)
 - [ ] Shell completion
 
 ## License

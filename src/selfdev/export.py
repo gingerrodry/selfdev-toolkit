@@ -9,9 +9,10 @@ from .store import Data
 
 def to_markdown(data: Data, today: date) -> str:
     lines = [f"# selfdev report ({today.isoformat()})", "", "## Habits", ""]
-    if data["habits"]:
+    active = habits.active_habits(data)
+    if active:
         lines += ["| Habit | Current | Best | Total |", "|---|---|---|---|"]
-        for name, days in sorted(data["habits"].items()):
+        for name, days in sorted(active.items()):
             lines.append(
                 f"| {name} | {habits.current_streak(days, today)} "
                 f"| {habits.longest_streak(days)} | {len(days)} |"

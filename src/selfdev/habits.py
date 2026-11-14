@@ -40,11 +40,37 @@ def longest_streak(days: list[str]) -> int:
     return best
 
 
+def active_habits(data: Data) -> dict[str, list[str]]:
+    """Habits that are not archived."""
+    archived = set(data.get("archived", []))
+    return {n: d for n, d in data["habits"].items() if n not in archived}
+
+
+def archive_habit(data: Data, name: str) -> bool:
+    """Hide a habit from reports while keeping its history. False if already archived."""
+    if name not in data["habits"]:
+        raise KeyError(name)
+    archived: list[str] = data.setdefault("archived", [])
+    if name in archived:
+        return False
+    archived.append(name)
+    return True
+
+
+def unarchive_habit(data: Data, name: str) -> bool:
+    """Bring an archived habit back. False if it was not archived."""
+    archived: list[str] = data.setdefault("archived", [])
+    if name not in archived:
+        return False
+    archived.remove(name)
+    return True
+
+
 def weekly_summary(data: Data, today: date) -> dict[str, int]:
     """Check-ins per habit over the 7 days ending today (inclusive)."""
     start = today - timedelta(days=6)
     result = {}
-    for name, days in data["habits"].items():
+    for name, days in active_habits(data).items():
         result[name] = sum(1 for d in days if start <= date.fromisoformat(d) <= today)
     return result
 
@@ -62,6 +88,8 @@ def remove_habit(data: Data, name: str) -> bool:
         return False
     del data["habits"][name]
     data.get("targets", {}).pop(name, None)
+    if name in data.get("archived", []):
+        data["archived"].remove(name)
     return True
 
 
@@ -75,6 +103,9 @@ def rename_habit(data: Data, old: str, new: str) -> None:
     targets = data.setdefault("targets", {})
     if old in targets:
         targets[new] = targets.pop(old)
+    archived: list[str] = data.setdefault("archived", [])
+    if old in archived:
+        archived[archived.index(old)] = new
 
 
 def monthly_summary(data: Data, year: int, month: int) -> dict[str, int]:
@@ -82,7 +113,7 @@ def monthly_summary(data: Data, year: int, month: int) -> dict[str, int]:
     prefix = f"{year:04d}-{month:02d}-"
     return {
         name: sum(1 for d in days if d.startswith(prefix))
-        for name, days in data["habits"].items()
+        for name, days in active_habits(data).items()
     }
 
 

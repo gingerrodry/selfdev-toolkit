@@ -132,3 +132,36 @@ def test_note_tags_and_filter(tmp_path, capsys):
     assert "learned argparse" in out and "untagged" not in out
     run(tmp_path, "notes", "-t", "missing")
     assert "No matching notes." in capsys.readouterr().out
+
+
+def test_archive_flow(tmp_path, capsys):
+    run(tmp_path, "check", "old")
+    run(tmp_path, "check", "keep")
+    assert run(tmp_path, "archive", "old") == 0
+    assert run(tmp_path, "archive", "ghost") == 2
+    capsys.readouterr()
+    run(tmp_path, "status")
+    out = capsys.readouterr().out
+    assert "keep:" in out and "old:" not in out
+    run(tmp_path, "status", "--all")
+    assert "old: current 1 / best 1 / total 1 [archived]" in capsys.readouterr().out
+    # archived habits cannot be checked in until restored
+    assert run(tmp_path, "check", "old", today=date(2026, 1, 11)) == 2
+    assert "unarchive" in capsys.readouterr().err
+    assert run(tmp_path, "unarchive", "old") == 0
+    assert run(tmp_path, "unarchive", "old") == 2
+    assert run(tmp_path, "check", "old", today=date(2026, 1, 11)) == 0
+
+
+def test_archived_habit_hidden_from_export_and_json(tmp_path, capsys):
+    import json
+
+    run(tmp_path, "check", "old")
+    run(tmp_path, "archive", "old")
+    capsys.readouterr()
+    run(tmp_path, "export")
+    assert "old" not in capsys.readouterr().out
+    run(tmp_path, "status", "--json")
+    assert json.loads(capsys.readouterr().out) == {}
+    run(tmp_path, "status", "--json", "--all")
+    assert "old" in json.loads(capsys.readouterr().out)

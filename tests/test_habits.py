@@ -99,3 +99,37 @@ def test_filter_by_tag_handles_legacy_notes():
     ]
     assert habits.filter_by_tag(notes, "#X") == [notes[1]]
     assert habits.filter_by_tag(notes, "  ") == []
+
+
+def _archive_data() -> dict:
+    return {
+        "habits": {"a": ["2026-01-10"], "b": ["2026-01-10"]},
+        "notes": [],
+        "targets": {},
+        "archived": [],
+    }
+
+
+def test_archive_and_unarchive():
+    import pytest
+
+    data = _archive_data()
+    assert habits.archive_habit(data, "a") is True
+    assert habits.archive_habit(data, "a") is False
+    assert list(habits.active_habits(data)) == ["b"]
+    assert habits.weekly_summary(data, date(2026, 1, 10)) == {"b": 1}
+    assert habits.monthly_summary(data, 2026, 1) == {"b": 1}
+    assert habits.unarchive_habit(data, "a") is True
+    assert habits.unarchive_habit(data, "a") is False
+    assert set(habits.active_habits(data)) == {"a", "b"}
+    with pytest.raises(KeyError):
+        habits.archive_habit(data, "nope")
+
+
+def test_rename_and_remove_keep_archive_list_consistent():
+    data = _archive_data()
+    habits.archive_habit(data, "a")
+    habits.rename_habit(data, "a", "c")
+    assert data["archived"] == ["c"]
+    habits.remove_habit(data, "c")
+    assert data["archived"] == []
