@@ -28,6 +28,8 @@ selfdev remove dev              # delete a habit
 selfdev archive dev             # hide from reports, keep history (status --all shows it)
 selfdev unarchive dev           # bring it back
 selfdev export -o report.md    # Markdown report (stdout if -o omitted)
+selfdev export -f csv -o c.csv # check-ins as CSV (habit,date)
+selfdev import c.csv           # merge check-ins from CSV; existing ones are skipped
 ```
 
 Data lives in `~/.selfdev/data.json`. Override with `--data PATH` or the `SELFDEV_DATA` environment variable.
@@ -62,7 +64,7 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Type hints and lint (ruff, mypy --strict) in CI
 - [x] Search notes (`selfdev notes --search`)
 - [x] Tags for notes (`selfdev note -t`, `selfdev notes -t`)
-- [ ] CSV import/export
+- [x] CSV import/export (`selfdev export -f csv`, `selfdev import`)
 - [x] Habit archive (`selfdev archive`, `selfdev unarchive`)
 - [ ] Shell completion
 

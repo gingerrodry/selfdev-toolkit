@@ -7,7 +7,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import __version__, habits, store
+from . import __version__, csvio, habits, store
 from .export import to_markdown
 
 
@@ -50,6 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     e = sub.add_parser("export", help="export habits and notes as Markdown")
     e.add_argument("-o", "--output", type=Path, help="write to file instead of stdout")
+    e.add_argument(
+        "-f", "--format", choices=["md", "csv"], default="md", help="md report or csv check-ins"
+    )
+    im = sub.add_parser("import", help="import check-ins from a CSV (habit,date)")
+    im.add_argument("file", type=Path)
     return p
 
 
@@ -177,12 +182,24 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
         store.save(path, data)
         print("Note saved.")
     elif args.cmd == "export":
-        md = to_markdown(data, today)
+        text = csvio.to_csv(data) if args.format == "csv" else to_markdown(data, today)
         if args.output:
-            args.output.write_text(md, encoding="utf-8")
+            args.output.write_text(text, encoding="utf-8")
             print(f"Exported to {args.output}")
         else:
-            print(md, end="")
+            print(text, end="")
+    elif args.cmd == "import":
+        try:
+            rows = csvio.parse_csv(args.file.read_text(encoding="utf-8-sig"))
+        except OSError as err:
+            print(f"error: cannot read {args.file}: {err.strerror}", file=sys.stderr)
+            return 2
+        except ValueError as err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
+        added = csvio.import_rows(data, rows)
+        store.save(path, data)
+        print(f"Imported {added} new check-in(s), skipped {len(rows) - added} existing.")
     elif args.cmd == "notes":
         shown = habits.search_notes(data, args.search) if args.search else data["notes"]
         if args.tag:
