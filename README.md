@@ -32,6 +32,15 @@ selfdev export -f csv -o c.csv # check-ins as CSV (habit,date)
 selfdev import c.csv           # merge check-ins from CSV; existing ones are skipped
 ```
 
+### Shell completion
+
+```bash
+echo 'eval "$(selfdev completion bash)"' >> ~/.bashrc   # bash
+echo 'eval "$(selfdev completion zsh)"' >> ~/.zshrc     # zsh
+```
+
+Completes subcommands, options, and existing habit names. Limitation: a global `--data` before the subcommand shifts the word positions, so complete without it.
+
 Data lives in `~/.selfdev/data.json`. Override with `--data PATH` or the `SELFDEV_DATA` environment variable.
 
 ## Design
@@ -66,7 +75,9 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Tags for notes (`selfdev note -t`, `selfdev notes -t`)
 - [x] CSV import/export (`selfdev export -f csv`, `selfdev import`)
 - [x] Habit archive (`selfdev archive`, `selfdev unarchive`)
-- [ ] Shell completion
+- [x] Shell completion (`selfdev completion bash|zsh`)
+- [ ] Fish completion
+- [ ] Habit-name completion for names containing spaces
 
 ## License
 

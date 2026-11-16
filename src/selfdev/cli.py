@@ -7,7 +7,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import __version__, csvio, habits, store
+from . import __version__, completion, csvio, habits, store
 from .export import to_markdown
 
 
@@ -53,18 +53,29 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument(
         "-f", "--format", choices=["md", "csv"], default="md", help="md report or csv check-ins"
     )
+    cp = sub.add_parser("completion", help="print a shell completion script")
+    cp.add_argument("shell", choices=["bash", "zsh"])
+    sub.add_parser("_habits", help=argparse.SUPPRESS)  # used by the completion scripts
     im = sub.add_parser("import", help="import check-ins from a CSV (habit,date)")
     im.add_argument("file", type=Path)
     return p
 
 
 def main(argv: list[str] | None = None, today: date | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
     path = args.data or store.default_path()
     today = today or date.today()
+
+    if args.cmd == "completion":
+        print(completion.generate(parser, args.shell), end="")
+        return 0
     data = store.load(path)
 
-    if args.cmd == "check":
+    if args.cmd == "_habits":
+        for name in sorted(data["habits"]):
+            print(name)
+    elif args.cmd == "check":
         if args.habit in data["archived"]:
             print(
                 f"error: '{args.habit}' is archived. Run: selfdev unarchive {args.habit}",
