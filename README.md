@@ -39,7 +39,7 @@ echo 'eval "$(selfdev completion bash)"' >> ~/.bashrc   # bash
 echo 'eval "$(selfdev completion zsh)"' >> ~/.zshrc     # zsh
 ```
 
-Completes subcommands, options, and existing habit names. Limitation: a global `--data` before the subcommand shifts the word positions, so complete without it.
+Completes subcommands, options, and existing habit names (names with spaces are shell-escaped). Limitation: a global `--data` before the subcommand shifts the word positions, so complete without it.
 
 Data lives in `~/.selfdev/data.json`. Override with `--data PATH` or the `SELFDEV_DATA` environment variable.
 
@@ -77,7 +77,7 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Habit archive (`selfdev archive`, `selfdev unarchive`)
 - [x] Shell completion (`selfdev completion bash|zsh`)
 - [ ] Fish completion
-- [ ] Habit-name completion for names containing spaces
+- [x] Habit-name completion for names containing spaces or slashes
 
 ## License
 

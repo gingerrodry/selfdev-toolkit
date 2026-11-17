@@ -56,7 +56,12 @@ def generate(parser: argparse.ArgumentParser, shell: str) -> str:
   case "$cmd" in
     {habit_cmds})
       if [ "$COMP_CWORD" -eq 2 ]; then
+        local IFS=$'\\n' i
+        cur="${{cur//\\\\/}}"
         COMPREPLY=($(compgen -W "$(selfdev _habits 2>/dev/null)" -- "$cur"))
+        for i in "${{!COMPREPLY[@]}}"; do
+          COMPREPLY[$i]=$(printf '%q' "${{COMPREPLY[$i]}}")
+        done
       fi;;
   esac
 }}
