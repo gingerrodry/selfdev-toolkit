@@ -37,9 +37,10 @@ selfdev import c.csv           # merge check-ins from CSV; existing ones are ski
 ```bash
 echo 'eval "$(selfdev completion bash)"' >> ~/.bashrc   # bash
 echo 'eval "$(selfdev completion zsh)"' >> ~/.zshrc     # zsh
+selfdev completion fish > ~/.config/fish/completions/selfdev.fish   # fish
 ```
 
-Completes subcommands, options, and existing habit names (names with spaces are shell-escaped). Limitation: a global `--data` before the subcommand shifts the word positions, so complete without it.
+Completes subcommands, options, and existing habit names (names with spaces are shell-escaped). Limitation (bash/zsh): a global `--data` before the subcommand shifts the word positions, so complete without it. The bash script is tested in real bash and the fish script in real fish; zsh relies on its bash-compatibility layer and is not tested.
 
 Data lives in `~/.selfdev/data.json`. Override with `--data PATH` or the `SELFDEV_DATA` environment variable.
 
@@ -75,8 +76,8 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Tags for notes (`selfdev note -t`, `selfdev notes -t`)
 - [x] CSV import/export (`selfdev export -f csv`, `selfdev import`)
 - [x] Habit archive (`selfdev archive`, `selfdev unarchive`)
-- [x] Shell completion (`selfdev completion bash|zsh`)
-- [ ] Fish completion
+- [x] Shell completion (`selfdev completion bash|zsh|fish`)
+- [x] Fish completion (`selfdev completion fish`)
 - [x] Habit-name completion for names containing spaces or slashes
 
 ## License

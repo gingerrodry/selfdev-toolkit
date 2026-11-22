@@ -27,8 +27,8 @@ def test_script_strips_backslashes_not_slashes():
 def test_zsh_prelude_and_unknown_shell():
     assert completion.generate(build_parser(), "zsh").startswith("autoload -U +X bashcompinit")
     assert not completion.generate(build_parser(), "bash").startswith("autoload")
-    with pytest.raises(ValueError, match="fish"):
-        completion.generate(build_parser(), "fish")
+    with pytest.raises(ValueError, match="tcsh"):
+        completion.generate(build_parser(), "tcsh")
 
 
 def test_cli_completion_and_hidden_habits(tmp_path, capsys):
@@ -79,3 +79,31 @@ def test_generated_script_completes_in_real_bash(tmp_path):
     # a slash in the typed prefix must be kept (only backslashes are stripped)
     assert complete(["selfdev", "check", "read/"], 2) == ["read/write"]
     assert complete(["selfdev", "check", "/"], 2) == []
+
+
+def test_fish_script_has_commands_options_and_habit_lookup():
+    script = completion.generate(build_parser(), "fish")
+    assert script.startswith("complete -c selfdev -f\n")
+    # subcommands carry their real help text, and hidden ones are not offered
+    assert "-a check -d 'check in a habit for today'" in script
+    assert "-a _habits" not in script
+    # options: long/short flags, value-taking (-r) vs boolean flags, and choices
+    assert "from export' -s f -l format -x -a 'md csv'" in script  # no file names offered
+    assert "from export' -s o -l output -r " in script  # a path: files are offered
+    assert "from monthly' -l month -x " in script
+    assert "from status' -l json -d" in script and "from status' -l json -r" not in script
+    assert "from completion' -a 'bash zsh fish'" in script
+    # habit names come from the same hidden command as bash/zsh
+    assert "archive check remove rename target unarchive'" in script
+    assert "(selfdev _habits 2>/dev/null)" in script
+
+
+def test_fish_quotes_apostrophes():
+    assert completion._fish_quote("it's") == "'it\\'s'"
+
+
+@pytest.mark.skipif(shutil.which("fish") is None, reason="fish not available")
+def test_fish_script_parses(tmp_path):
+    script = tmp_path / "selfdev.fish"
+    script.write_text(completion.generate(build_parser(), "fish"), encoding="utf-8")
+    subprocess.run(["fish", "--no-execute", str(script)], check=True)

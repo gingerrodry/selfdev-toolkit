@@ -54,7 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-f", "--format", choices=["md", "csv"], default="md", help="md report or csv check-ins"
     )
     cp = sub.add_parser("completion", help="print a shell completion script")
-    cp.add_argument("shell", choices=["bash", "zsh"])
+    cp.add_argument("shell", choices=["bash", "zsh", "fish"])
     sub.add_parser("_habits", help=argparse.SUPPRESS)  # used by the completion scripts
     im = sub.add_parser("import", help="import check-ins from a CSV (habit,date)")
     im.add_argument("file", type=Path)
