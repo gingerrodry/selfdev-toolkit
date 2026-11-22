@@ -19,6 +19,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     c = sub.add_parser("check", help="check in a habit for today")
     c.add_argument("habit")
+    u = sub.add_parser("uncheck", help="undo a check-in (default: today)")
+    u.add_argument("habit")
+    u.add_argument("--date", help="day to undo, YYYY-MM-DD (default: today)")
 
     st = sub.add_parser("status", help="show streaks for all habits")
     st.add_argument("--json", action="store_true", help="machine-readable output")
@@ -88,6 +91,17 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             print(f"Checked in '{args.habit}'. Streak: {streak} day(s)")
         else:
             print(f"'{args.habit}' is already checked in today.")
+    elif args.cmd == "uncheck":
+        try:
+            day = date.fromisoformat(args.date) if args.date else today
+        except ValueError:
+            print("error: --date must look like 2026-11-22", file=sys.stderr)
+            return 2
+        if not habits.uncheck(data, args.habit, day):
+            print(f"error: '{args.habit}' has no check-in on {day.isoformat()}", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Removed check-in for '{args.habit}' on {day.isoformat()}.")
     elif args.cmd == "archive":
         try:
             changed = habits.archive_habit(data, args.habit)

@@ -165,3 +165,22 @@ def test_archived_habit_hidden_from_export_and_json(tmp_path, capsys):
     assert json.loads(capsys.readouterr().out) == {}
     run(tmp_path, "status", "--json", "--all")
     assert "old" in json.loads(capsys.readouterr().out)
+
+
+def test_uncheck_today_and_specific_date(tmp_path, capsys):
+    run(tmp_path, "check", "code", today=date(2026, 1, 9))
+    run(tmp_path, "check", "code")
+    capsys.readouterr()
+    assert run(tmp_path, "uncheck", "code") == 0
+    assert "Removed check-in for 'code' on 2026-01-10." in capsys.readouterr().out
+    assert run(tmp_path, "uncheck", "code") == 2  # today is already undone
+    assert "no check-in on 2026-01-10" in capsys.readouterr().err
+    assert run(tmp_path, "uncheck", "code", "--date", "2026-01-09") == 0
+    run(tmp_path, "status")
+    assert "code: current 0 / best 0 / total 0" in capsys.readouterr().out
+
+
+def test_uncheck_rejects_bad_date_and_unknown_habit(tmp_path, capsys):
+    assert run(tmp_path, "uncheck", "ghost") == 2
+    assert run(tmp_path, "uncheck", "ghost", "--date", "yesterday") == 2
+    assert "--date must look like" in capsys.readouterr().err

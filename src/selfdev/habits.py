@@ -40,6 +40,19 @@ def longest_streak(days: list[str]) -> int:
     return best
 
 
+def uncheck(data: Data, name: str, day: date) -> bool:
+    """Undo a check-in. Returns False if that day was not recorded.
+
+    The habit itself is kept even when its last check-in is removed.
+    """
+    days = data["habits"].get(name)
+    iso = day.isoformat()
+    if days is None or iso not in days:
+        return False
+    days.remove(iso)
+    return True
+
+
 def active_habits(data: Data) -> dict[str, list[str]]:
     """Habits that are not archived."""
     archived = set(data.get("archived", []))

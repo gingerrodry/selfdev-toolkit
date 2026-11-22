@@ -133,3 +133,18 @@ def test_rename_and_remove_keep_archive_list_consistent():
     assert data["archived"] == ["c"]
     habits.remove_habit(data, "c")
     assert data["archived"] == []
+
+
+def test_uncheck_removes_only_that_day_and_keeps_habit():
+    data = {
+        "habits": {"a": ["2026-01-01", "2026-01-02"]},
+        "notes": [],
+        "targets": {},
+        "archived": [],
+    }
+    assert habits.uncheck(data, "a", date(2026, 1, 2)) is True
+    assert data["habits"]["a"] == ["2026-01-01"]
+    assert habits.uncheck(data, "a", date(2026, 1, 2)) is False  # already gone
+    assert habits.uncheck(data, "nope", date(2026, 1, 1)) is False
+    assert habits.uncheck(data, "a", date(2026, 1, 1)) is True
+    assert data["habits"]["a"] == []  # habit survives with no check-ins

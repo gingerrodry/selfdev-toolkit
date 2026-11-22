@@ -15,7 +15,7 @@ def test_generate_lists_public_commands_only():
     assert "archive check completion export" in script
     assert "_habits" not in script.split("compgen -W")[1]  # hidden command not offered
     assert "status) opts=\"--json --all\"" in script
-    assert "archive|check|remove|rename|target|unarchive)" in script
+    assert "archive|check|remove|rename|target|unarchive|uncheck)" in script
 
 
 def test_script_strips_backslashes_not_slashes():
@@ -94,7 +94,7 @@ def test_fish_script_has_commands_options_and_habit_lookup():
     assert "from status' -l json -d" in script and "from status' -l json -r" not in script
     assert "from completion' -a 'bash zsh fish'" in script
     # habit names come from the same hidden command as bash/zsh
-    assert "archive check remove rename target unarchive'" in script
+    assert "archive check remove rename target unarchive uncheck'" in script
     assert "(selfdev _habits 2>/dev/null)" in script
 
 

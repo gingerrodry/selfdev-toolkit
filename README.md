@@ -14,6 +14,7 @@ pip install -e ".[dev]"
 
 ```bash
 selfdev check coding            # check in a habit for today
+selfdev uncheck coding          # undo today's check-in (--date YYYY-MM-DD for another day)
 selfdev status                  # current / best streak and totals
 selfdev status --json          # machine-readable (also: weekly --json)
 selfdev note "learned argparse subcommands" -t python -t cli
@@ -78,6 +79,9 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Habit archive (`selfdev archive`, `selfdev unarchive`)
 - [x] Shell completion (`selfdev completion bash|zsh|fish`)
 - [x] Fish completion (`selfdev completion fish`)
+- [x] Undo a check-in (`selfdev uncheck`)
+- [ ] Edit or delete a note
+- [ ] Streak freeze (skip days without breaking a streak)
 - [x] Habit-name completion for names containing spaces or slashes
 
 ## License
