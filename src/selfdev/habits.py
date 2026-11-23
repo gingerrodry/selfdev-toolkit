@@ -142,6 +142,23 @@ def search_notes(data: Data, query: str) -> list[dict[str, Any]]:
     return sorted(hits, key=lambda n: n["date"])
 
 
+def edit_note(data: Data, number: int, text: str) -> None:
+    """Replace the text of note `number` (1-based, position in the full list)."""
+    if not 1 <= number <= len(data["notes"]):
+        raise IndexError(number)
+    if not text.strip():
+        raise ValueError("note text must not be empty")
+    data["notes"][number - 1]["text"] = text
+
+
+def delete_note(data: Data, number: int) -> dict[str, Any]:
+    """Remove and return note `number` (1-based, position in the full list)."""
+    if not 1 <= number <= len(data["notes"]):
+        raise IndexError(number)
+    removed: dict[str, Any] = data["notes"].pop(number - 1)
+    return removed
+
+
 def normalize_tags(tags: list[str]) -> list[str]:
     """Lowercase, strip a leading '#', drop empties and duplicates (order kept)."""
     seen: list[str] = []

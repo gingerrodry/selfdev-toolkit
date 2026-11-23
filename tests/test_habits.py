@@ -148,3 +148,41 @@ def test_uncheck_removes_only_that_day_and_keeps_habit():
     assert habits.uncheck(data, "nope", date(2026, 1, 1)) is False
     assert habits.uncheck(data, "a", date(2026, 1, 1)) is True
     assert data["habits"]["a"] == []  # habit survives with no check-ins
+
+
+def _notes_data():
+    return {
+        "habits": {},
+        "targets": {},
+        "archived": [],
+        "notes": [
+            {"date": "2026-01-01", "text": "first", "tags": ["a"]},
+            {"date": "2026-01-02", "text": "second"},
+        ],
+    }
+
+
+def test_edit_note_keeps_date_and_tags():
+    data = _notes_data()
+    habits.edit_note(data, 1, "first, revised")
+    assert data["notes"][0] == {"date": "2026-01-01", "text": "first, revised", "tags": ["a"]}
+
+
+def test_edit_and_delete_note_validate_number_and_text():
+    import pytest
+
+    data = _notes_data()
+    for bad in (0, 3, -1):
+        with pytest.raises(IndexError):
+            habits.edit_note(data, bad, "x")
+        with pytest.raises(IndexError):
+            habits.delete_note(data, bad)
+    with pytest.raises(ValueError):
+        habits.edit_note(data, 1, "   ")
+    assert len(data["notes"]) == 2  # nothing changed
+
+
+def test_delete_note_returns_removed_and_renumbers():
+    data = _notes_data()
+    assert habits.delete_note(data, 1)["text"] == "first"
+    assert [n["text"] for n in data["notes"]] == ["second"]

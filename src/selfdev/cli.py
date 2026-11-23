@@ -50,6 +50,12 @@ def build_parser() -> argparse.ArgumentParser:
     ns = sub.add_parser("notes", help="list learning notes")
     ns.add_argument("-s", "--search", help="only notes containing this text (case-insensitive)")
     ns.add_argument("-t", "--tag", help="only notes with this tag")
+    ns.add_argument("-n", "--numbers", action="store_true", help="show note numbers")
+    ne = sub.add_parser("note-edit", help="change the text of a note (see notes -n)")
+    ne.add_argument("number", type=int)
+    ne.add_argument("text")
+    nr = sub.add_parser("note-rm", help="delete a note (see notes -n)")
+    nr.add_argument("number", type=int)
 
     e = sub.add_parser("export", help="export habits and notes as Markdown")
     e.add_argument("-o", "--output", type=Path, help="write to file instead of stdout")
@@ -231,9 +237,30 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             shown = habits.filter_by_tag(shown, args.tag)
         if (args.search or args.tag) and not shown:
             print("No matching notes.")
+        numbers = {id(n): i for i, n in enumerate(data["notes"], start=1)}
         for item in shown:
             suffix = "".join(f" #{t}" for t in item.get("tags", []))
-            print(f"{item['date']}  {item['text']}{suffix}")
+            prefix = f"{numbers[id(item)]:>3}. " if args.numbers else ""
+            print(f"{prefix}{item['date']}  {item['text']}{suffix}")
+    elif args.cmd == "note-edit":
+        try:
+            habits.edit_note(data, args.number, args.text)
+        except IndexError:
+            print(f"error: no note number {args.number} (see: selfdev notes -n)", file=sys.stderr)
+            return 2
+        except ValueError as err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Updated note {args.number}.")
+    elif args.cmd == "note-rm":
+        try:
+            removed = habits.delete_note(data, args.number)
+        except IndexError:
+            print(f"error: no note number {args.number} (see: selfdev notes -n)", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Deleted note {args.number}: {removed['text']}")
     return 0
 
 

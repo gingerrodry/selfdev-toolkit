@@ -21,6 +21,9 @@ selfdev note "learned argparse subcommands" -t python -t cli
 selfdev notes                   # list learning notes
 selfdev notes -s argparse       # search notes (case-insensitive)
 selfdev notes -t python         # only notes with a tag
+selfdev notes -n                # show note numbers
+selfdev note-edit 2 "new text"  # change a note (date and tags are kept)
+selfdev note-rm 2               # delete a note (numbers are positions in the full list)
 selfdev weekly                  # check-ins over the last 7 days
 selfdev monthly --month 2026-11 # per-habit monthly completion rate
 selfdev target coding 3         # weekly goal; shown in `weekly`
@@ -80,7 +83,7 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Shell completion (`selfdev completion bash|zsh|fish`)
 - [x] Fish completion (`selfdev completion fish`)
 - [x] Undo a check-in (`selfdev uncheck`)
-- [ ] Edit or delete a note
+- [x] Edit or delete a note (`selfdev note-edit`, `selfdev note-rm`)
 - [ ] Streak freeze (skip days without breaking a streak)
 - [x] Habit-name completion for names containing spaces or slashes
 

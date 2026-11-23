@@ -184,3 +184,38 @@ def test_uncheck_rejects_bad_date_and_unknown_habit(tmp_path, capsys):
     assert run(tmp_path, "uncheck", "ghost") == 2
     assert run(tmp_path, "uncheck", "ghost", "--date", "yesterday") == 2
     assert "--date must look like" in capsys.readouterr().err
+
+
+def test_notes_numbers_refer_to_full_list_even_when_filtered(tmp_path, capsys):
+    run(tmp_path, "note", "alpha one")
+    run(tmp_path, "note", "beta two")
+    run(tmp_path, "note", "alpha three")
+    capsys.readouterr()
+    run(tmp_path, "notes", "-n", "-s", "alpha")
+    out = capsys.readouterr().out
+    assert "  1. 2026-01-10  alpha one" in out
+    assert "  3. 2026-01-10  alpha three" in out and "beta" not in out
+
+
+def test_note_edit_and_rm_via_cli(tmp_path, capsys):
+    run(tmp_path, "note", "keep me", "-t", "x")
+    run(tmp_path, "note", "typo nte")
+    capsys.readouterr()
+    assert run(tmp_path, "note-edit", "2", "typo note") == 0
+    assert run(tmp_path, "note-rm", "1") == 0
+    capsys.readouterr()
+    run(tmp_path, "notes", "-n")
+    out = capsys.readouterr().out
+    assert "  1. 2026-01-10  typo note" in out and "keep me" not in out
+
+
+def test_note_edit_and_rm_errors(tmp_path, capsys):
+    run(tmp_path, "note", "only")
+    capsys.readouterr()
+    assert run(tmp_path, "note-edit", "5", "x") == 2
+    assert run(tmp_path, "note-rm", "0") == 2
+    assert "no note number" in capsys.readouterr().err
+    assert run(tmp_path, "note-edit", "1", "  ") == 2
+    assert "must not be empty" in capsys.readouterr().err
+    run(tmp_path, "notes")
+    assert "only" in capsys.readouterr().out  # unchanged
