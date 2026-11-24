@@ -1,6 +1,7 @@
 """Habit tracking logic: check-ins and streak calculation."""
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date, timedelta
 from typing import Any
 
@@ -18,26 +19,68 @@ def check_in(data: Data, name: str, day: date) -> bool:
     return True
 
 
-def current_streak(days: list[str], today: date) -> int:
-    """Consecutive days ending today (or yesterday, so an unfinished day keeps the streak)."""
-    done = {date.fromisoformat(d) for d in days}
+MAX_FREEZES_PER_MONTH = 2
+
+
+def _dates(days: Iterable[str]) -> set[date]:
+    return {date.fromisoformat(d) for d in days}
+
+
+def current_streak(days: list[str], today: date, frozen: Iterable[str] = ()) -> int:
+    """Consecutive days ending today (or yesterday, so an unfinished day keeps the streak).
+
+    A frozen day keeps the streak alive but does not add to it.
+    """
+    done, skipped = _dates(days), _dates(frozen)
     cursor = today if today in done else today - timedelta(days=1)
     streak = 0
-    while cursor in done:
-        streak += 1
+    while cursor in done or cursor in skipped:
+        if cursor in done:
+            streak += 1
         cursor -= timedelta(days=1)
     return streak
 
 
-def longest_streak(days: list[str]) -> int:
-    parsed = sorted({date.fromisoformat(d) for d in days})
+def longest_streak(days: list[str], frozen: Iterable[str] = ()) -> int:
+    """Longest run of check-ins; gaps made up only of frozen days do not break a run."""
+    skipped = _dates(frozen)
     best = run = 0
-    prev = None
-    for d in parsed:
-        run = run + 1 if prev and d - prev == timedelta(days=1) else 1
+    prev: date | None = None
+    for d in sorted(_dates(days)):
+        gap = [prev + timedelta(days=k) for k in range(1, (d - prev).days)] if prev else []
+        bridged = prev is not None and all(g in skipped for g in gap)
+        run = run + 1 if bridged else 1
         best = max(best, run)
         prev = d
     return best
+
+
+def freeze(data: Data, name: str, day: date, today: date) -> None:
+    """Freeze `day` for a habit so a missed day does not break its streak.
+
+    Raises KeyError (unknown habit) or ValueError (future day, already checked in,
+    already frozen, or the monthly limit is used up).
+    """
+    if name not in data["habits"]:
+        raise KeyError(name)
+    if day > today:
+        raise ValueError("cannot freeze a future day")
+    iso = day.isoformat()
+    if iso in data["habits"][name]:
+        raise ValueError(f"{iso} already has a check-in")
+    frozen: list[str] = data.setdefault("freezes", {}).setdefault(name, [])
+    if iso in frozen:
+        raise ValueError(f"{iso} is already frozen")
+    month = iso[:7]
+    if sum(1 for f in frozen if f.startswith(month)) >= MAX_FREEZES_PER_MONTH:
+        raise ValueError(f"at most {MAX_FREEZES_PER_MONTH} freezes per habit per month ({month})")
+    frozen.append(iso)
+    frozen.sort()
+
+
+def frozen_days(data: Data, name: str) -> list[str]:
+    result: list[str] = data.get("freezes", {}).get(name, [])
+    return result
 
 
 def uncheck(data: Data, name: str, day: date) -> bool:
@@ -101,6 +144,7 @@ def remove_habit(data: Data, name: str) -> bool:
         return False
     del data["habits"][name]
     data.get("targets", {}).pop(name, None)
+    data.get("freezes", {}).pop(name, None)
     if name in data.get("archived", []):
         data["archived"].remove(name)
     return True
@@ -119,6 +163,9 @@ def rename_habit(data: Data, old: str, new: str) -> None:
     archived: list[str] = data.setdefault("archived", [])
     if old in archived:
         archived[archived.index(old)] = new
+    freezes = data.setdefault("freezes", {})
+    if old in freezes:
+        freezes[new] = freezes.pop(old)
 
 
 def monthly_summary(data: Data, year: int, month: int) -> dict[str, int]:

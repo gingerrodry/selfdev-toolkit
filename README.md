@@ -14,6 +14,7 @@ pip install -e ".[dev]"
 
 ```bash
 selfdev check coding            # check in a habit for today
+selfdev freeze coding           # protect a missed day (--date YYYY-MM-DD; max 2 per habit per month)
 selfdev uncheck coding          # undo today's check-in (--date YYYY-MM-DD for another day)
 selfdev status                  # current / best streak and totals
 selfdev status --json          # machine-readable (also: weekly --json)
@@ -54,7 +55,7 @@ Data lives in `~/.selfdev/data.json`. Override with `--data PATH` or the `SELFDE
 - `habits.py`: pure functions for check-ins and streaks; today's date is injected, so logic is deterministic to test
 - `cli.py`: thin argparse layer over the above
 
-A streak stays alive if you haven't checked in yet today but did yesterday.
+A streak stays alive if you haven't checked in yet today but did yesterday. A frozen day keeps a streak alive but does not add to it (and is not counted in the total); each habit can freeze at most 2 days per month, and only past or current days without a check-in.
 
 ## Development
 
@@ -84,7 +85,11 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Fish completion (`selfdev completion fish`)
 - [x] Undo a check-in (`selfdev uncheck`)
 - [x] Edit or delete a note (`selfdev note-edit`, `selfdev note-rm`)
-- [ ] Streak freeze (skip days without breaking a streak)
+- [x] Streak freeze (`selfdev freeze`)
+- [ ] Show frozen days in `status --json` and the Markdown export
+- [ ] `selfdev unfreeze` to undo a freeze
+- [ ] Habit reminders: list habits not yet checked in today (`selfdev due`)
+- [ ] Unit tests for the data-migration path of old data files
 - [x] Habit-name completion for names containing spaces or slashes
 
 ## License

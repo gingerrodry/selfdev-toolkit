@@ -1,6 +1,6 @@
 from selfdev import store
 
-EMPTY = {"habits": {}, "notes": [], "targets": {}, "archived": []}
+EMPTY = {"habits": {}, "notes": [], "targets": {}, "archived": [], "freezes": {}}
 
 
 def test_load_missing_file_returns_empty(tmp_path):
@@ -14,6 +14,7 @@ def test_roundtrip(tmp_path):
         "notes": [],
         "targets": {"日本語": 3},
         "archived": ["日本語"],
+        "freezes": {"日本語": ["2026-01-02"]},
     }
     store.save(p, data)
     assert store.load(p) == data

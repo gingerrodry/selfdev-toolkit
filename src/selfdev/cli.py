@@ -23,6 +23,10 @@ def build_parser() -> argparse.ArgumentParser:
     u.add_argument("habit")
     u.add_argument("--date", help="day to undo, YYYY-MM-DD (default: today)")
 
+    fz = sub.add_parser("freeze", help="freeze a missed day so it does not break the streak")
+    fz.add_argument("habit")
+    fz.add_argument("--date", help="day to freeze, YYYY-MM-DD (default: today)")
+
     st = sub.add_parser("status", help="show streaks for all habits")
     st.add_argument("--json", action="store_true", help="machine-readable output")
     st.add_argument("--all", action="store_true", help="include archived habits")
@@ -93,10 +97,28 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             return 2
         if habits.check_in(data, args.habit, today):
             store.save(path, data)
-            streak = habits.current_streak(data["habits"][args.habit], today)
+            streak = habits.current_streak(
+                data["habits"][args.habit], today, habits.frozen_days(data, args.habit)
+            )
             print(f"Checked in '{args.habit}'. Streak: {streak} day(s)")
         else:
             print(f"'{args.habit}' is already checked in today.")
+    elif args.cmd == "freeze":
+        try:
+            day = date.fromisoformat(args.date) if args.date else today
+        except ValueError:
+            print("error: --date must look like 2026-11-22", file=sys.stderr)
+            return 2
+        try:
+            habits.freeze(data, args.habit, day, today)
+        except KeyError:
+            print(f"error: no such habit '{args.habit}'", file=sys.stderr)
+            return 2
+        except ValueError as err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Froze '{args.habit}' on {day.isoformat()}. Streak is protected for that day.")
     elif args.cmd == "uncheck":
         try:
             day = date.fromisoformat(args.date) if args.date else today
@@ -126,8 +148,8 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
         shown = data["habits"] if args.all else habits.active_habits(data)
         out = {
             name: {
-                "current": habits.current_streak(days, today),
-                "best": habits.longest_streak(days),
+                "current": habits.current_streak(days, today, habits.frozen_days(data, name)),
+                "best": habits.longest_streak(days, habits.frozen_days(data, name)),
                 "total": len(days),
             }
             for name, days in sorted(shown.items())
@@ -138,8 +160,9 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
         if not shown:
             print("No habits yet. Try: selfdev check coding")
         for name, days in sorted(shown.items()):
-            cur = habits.current_streak(days, today)
-            best = habits.longest_streak(days)
+            frozen = habits.frozen_days(data, name)
+            cur = habits.current_streak(days, today, frozen)
+            best = habits.longest_streak(days, frozen)
             mark = " [archived]" if name in data["archived"] else ""
             print(f"{name}: current {cur} / best {best} / total {len(days)}{mark}")
     elif args.cmd == "target":

@@ -9,13 +9,26 @@ from selfdev.cli import build_parser, main
 
 DAY = date(2026, 1, 10)
 
+# commands whose first argument is an existing habit name (update when adding such a command)
+HABIT_COMMANDS = {
+    "archive",
+    "check",
+    "freeze",
+    "remove",
+    "rename",
+    "target",
+    "unarchive",
+    "uncheck",
+}
+
 
 def test_generate_lists_public_commands_only():
     script = completion.generate(build_parser(), "bash")
     assert "archive check completion export" in script
     assert "_habits" not in script.split("compgen -W")[1]  # hidden command not offered
     assert "status) opts=\"--json --all\"" in script
-    assert "archive|check|remove|rename|target|unarchive|uncheck)" in script
+    habit_line = next(ln for ln in script.splitlines() if ln.strip().endswith(")") and "|" in ln)
+    assert set(habit_line.strip().rstrip(")").split("|")) == HABIT_COMMANDS
 
 
 def test_script_strips_backslashes_not_slashes():
@@ -94,7 +107,9 @@ def test_fish_script_has_commands_options_and_habit_lookup():
     assert "from status' -l json -d" in script and "from status' -l json -r" not in script
     assert "from completion' -a 'bash zsh fish'" in script
     # habit names come from the same hidden command as bash/zsh
-    assert "archive check remove rename target unarchive uncheck'" in script
+    seen = next(ln for ln in script.splitlines() if "(selfdev _habits" in ln)
+    listed = seen.split("__fish_seen_subcommand_from ")[1].split("'")[0].split()
+    assert set(listed) == HABIT_COMMANDS
     assert "(selfdev _habits 2>/dev/null)" in script
 
 
