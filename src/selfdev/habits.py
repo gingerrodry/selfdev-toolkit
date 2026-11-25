@@ -78,6 +78,20 @@ def freeze(data: Data, name: str, day: date, today: date) -> None:
     frozen.sort()
 
 
+def due_today(data: Data, today: date) -> list[tuple[str, int]]:
+    """Active habits with no check-in (and no freeze) today, as (name, current streak).
+
+    The streak shown is the one still alive, i.e. what a missed day would end.
+    """
+    due: list[tuple[str, int]] = []
+    for name, days in sorted(active_habits(data).items()):
+        iso = today.isoformat()
+        if iso in days or iso in frozen_days(data, name):
+            continue
+        due.append((name, current_streak(days, today, frozen_days(data, name))))
+    return due
+
+
 def frozen_days(data: Data, name: str) -> list[str]:
     result: list[str] = data.get("freezes", {}).get(name, [])
     return result

@@ -9,6 +9,13 @@ from selfdev.cli import build_parser, main
 
 DAY = date(2026, 1, 10)
 
+# every public subcommand (update when adding a command)
+PUBLIC_COMMANDS = {
+    "archive", "check", "completion", "due", "export", "freeze", "import", "monthly",
+    "note", "note-edit", "note-rm", "notes", "remove", "rename", "status", "target",
+    "unarchive", "uncheck", "weekly",
+}  # fmt: skip
+
 # commands whose first argument is an existing habit name (update when adding such a command)
 HABIT_COMMANDS = {
     "archive",
@@ -24,8 +31,8 @@ HABIT_COMMANDS = {
 
 def test_generate_lists_public_commands_only():
     script = completion.generate(build_parser(), "bash")
-    assert "archive check completion export" in script
-    assert "_habits" not in script.split("compgen -W")[1]  # hidden command not offered
+    offered = set(script.split('compgen -W "')[1].split('"')[0].split())
+    assert offered == PUBLIC_COMMANDS  # hidden commands such as _habits are not offered
     assert "status) opts=\"--json --all\"" in script
     habit_line = next(ln for ln in script.splitlines() if ln.strip().endswith(")") and "|" in ln)
     assert set(habit_line.strip().rstrip(")").split("|")) == HABIT_COMMANDS

@@ -100,3 +100,42 @@ def test_cli_freeze_errors(tmp_path, capsys):
     assert "already has a check-in" in capsys.readouterr().err
     assert run(tmp_path, "freeze", "code", "--date", "2026-02-01") == 2
     assert "future" in capsys.readouterr().err
+
+
+def _due_data():
+    return {
+        "habits": {"a": ["2026-01-08", "2026-01-09"], "b": ["2026-01-10"], "c": [], "old": []},
+        "notes": [],
+        "targets": {},
+        "archived": ["old"],
+        "freezes": {},
+    }
+
+
+def test_due_today_lists_unchecked_active_habits_with_live_streak():
+    data = _due_data()
+    assert habits.due_today(data, date(2026, 1, 10)) == [("a", 2), ("c", 0)]
+
+
+def test_due_today_skips_frozen_and_archived():
+    data = _due_data()
+    data["freezes"] = {"a": ["2026-01-10"]}
+    assert habits.due_today(data, date(2026, 1, 10)) == [("c", 0)]  # a frozen, b done, old archived
+
+
+def test_cli_due_text_json_and_empty(tmp_path, capsys):
+    import json
+
+    assert run(tmp_path, "due") == 0
+    assert "No habits yet" in capsys.readouterr().out
+    run(tmp_path, "check", "code", today=date(2026, 1, 9))
+    run(tmp_path, "check", "read")
+    capsys.readouterr()
+    run(tmp_path, "due")
+    assert capsys.readouterr().out == "code  (streak 1 at risk)\n"
+    run(tmp_path, "due", "--json")
+    assert json.loads(capsys.readouterr().out) == [{"habit": "code", "streak": 1}]
+    run(tmp_path, "check", "code")
+    capsys.readouterr()
+    run(tmp_path, "due")
+    assert capsys.readouterr().out == "All done for today.\n"

@@ -27,6 +27,9 @@ def build_parser() -> argparse.ArgumentParser:
     fz.add_argument("habit")
     fz.add_argument("--date", help="day to freeze, YYYY-MM-DD (default: today)")
 
+    du = sub.add_parser("due", help="list habits not yet checked in today")
+    du.add_argument("--json", action="store_true", help="machine-readable output")
+
     st = sub.add_parser("status", help="show streaks for all habits")
     st.add_argument("--json", action="store_true", help="machine-readable output")
     st.add_argument("--all", action="store_true", help="include archived habits")
@@ -103,6 +106,20 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             print(f"Checked in '{args.habit}'. Streak: {streak} day(s)")
         else:
             print(f"'{args.habit}' is already checked in today.")
+    elif args.cmd == "due":
+        due = habits.due_today(data, today)
+        if args.json:
+            payload = [{"habit": n, "streak": s} for n, s in due]
+            print(json.dumps(payload, ensure_ascii=False))
+        elif not due:
+            if data["habits"]:
+                print("All done for today.")
+            else:
+                print("No habits yet. Try: selfdev check coding")
+        else:
+            for name, streak in due:
+                risk = f"  (streak {streak} at risk)" if streak else ""
+                print(f"{name}{risk}")
     elif args.cmd == "freeze":
         try:
             day = date.fromisoformat(args.date) if args.date else today
