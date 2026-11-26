@@ -139,3 +139,48 @@ def test_cli_due_text_json_and_empty(tmp_path, capsys):
     capsys.readouterr()
     run(tmp_path, "due")
     assert capsys.readouterr().out == "All done for today.\n"
+
+
+def test_unfreeze_removes_freeze_and_returns_the_monthly_slot():
+    data = make(["2026-01-01"])
+    today = date(2026, 1, 10)
+    habits.freeze(data, "a", date(2026, 1, 2), today)
+    habits.freeze(data, "a", date(2026, 1, 3), today)
+    assert habits.unfreeze(data, "a", date(2026, 1, 2)) is True
+    assert data["freezes"]["a"] == ["2026-01-03"]
+    assert habits.unfreeze(data, "a", date(2026, 1, 2)) is False  # already undone
+    habits.freeze(data, "a", date(2026, 1, 4), today)  # the slot is available again
+    with pytest.raises(ValueError, match="at most 2"):
+        habits.freeze(data, "a", date(2026, 1, 5), today)
+
+
+def test_unfreeze_cleans_up_empty_entry_and_unknown_habit():
+    data = make(["2026-01-01"], ["2026-01-02"])
+    assert habits.unfreeze(data, "a", date(2026, 1, 2)) is True
+    assert data["freezes"] == {}
+    assert habits.unfreeze(data, "a", date(2026, 1, 2)) is False
+    assert habits.unfreeze(data, "nope", date(2026, 1, 2)) is False
+
+
+def test_unfreeze_breaks_the_bridged_streak_again():
+    days = ["2026-01-01", "2026-01-03"]
+    data = make(days, ["2026-01-02"])
+    assert habits.current_streak(days, date(2026, 1, 3), habits.frozen_days(data, "a")) == 2
+    habits.unfreeze(data, "a", date(2026, 1, 2))
+    assert habits.current_streak(days, date(2026, 1, 3), habits.frozen_days(data, "a")) == 1
+
+
+def test_cli_unfreeze(tmp_path, capsys):
+    run(tmp_path, "check", "code", today=date(2026, 1, 8))
+    run(tmp_path, "freeze", "code", "--date", "2026-01-09")
+    run(tmp_path, "check", "code")
+    capsys.readouterr()
+    assert run(tmp_path, "unfreeze", "code", "--date", "2026-01-09") == 0
+    assert "Unfroze 'code' on 2026-01-09." in capsys.readouterr().out
+    run(tmp_path, "status")
+    assert "code: current 1 / best 1 / total 2" in capsys.readouterr().out  # streak broken again
+    assert run(tmp_path, "unfreeze", "code", "--date", "2026-01-09") == 2
+    assert "is not frozen on 2026-01-09" in capsys.readouterr().err
+    assert run(tmp_path, "unfreeze", "code", "--date", "nope") == 2
+    assert "--date must look like" in capsys.readouterr().err
+    assert run(tmp_path, "unfreeze", "ghost") == 2

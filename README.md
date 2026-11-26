@@ -16,6 +16,7 @@ pip install -e ".[dev]"
 selfdev check coding            # check in a habit for today
 selfdev due                     # habits not yet checked in today, with streaks at risk (--json too)
 selfdev freeze coding           # protect a missed day (--date YYYY-MM-DD; max 2 per habit per month)
+selfdev unfreeze coding         # undo a freeze (gives the monthly slot back)
 selfdev uncheck coding          # undo today's check-in (--date YYYY-MM-DD for another day)
 selfdev status                  # current / best streak and totals
 selfdev status --json          # machine-readable (also: weekly --json)
@@ -88,7 +89,7 @@ CI runs ruff, mypy (strict) and the tests on Python 3.10 and 3.12.
 - [x] Edit or delete a note (`selfdev note-edit`, `selfdev note-rm`)
 - [x] Streak freeze (`selfdev freeze`)
 - [ ] Show frozen days in `status --json` and the Markdown export
-- [ ] `selfdev unfreeze` to undo a freeze
+- [x] `selfdev unfreeze` to undo a freeze
 - [x] List habits not yet checked in today (`selfdev due`)
 - [ ] Unit tests for the data-migration path of old data files
 - [x] Habit-name completion for names containing spaces or slashes

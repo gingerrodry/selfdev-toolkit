@@ -92,6 +92,21 @@ def due_today(data: Data, today: date) -> list[tuple[str, int]]:
     return due
 
 
+def unfreeze(data: Data, name: str, day: date) -> bool:
+    """Remove a freeze. Returns False if that day was not frozen.
+
+    The monthly limit counts current freezes, so unfreezing gives the slot back.
+    """
+    frozen = data.get("freezes", {}).get(name)
+    iso = day.isoformat()
+    if not frozen or iso not in frozen:
+        return False
+    frozen.remove(iso)
+    if not frozen:
+        del data["freezes"][name]
+    return True
+
+
 def frozen_days(data: Data, name: str) -> list[str]:
     result: list[str] = data.get("freezes", {}).get(name, [])
     return result

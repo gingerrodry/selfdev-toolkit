@@ -13,7 +13,7 @@ DAY = date(2026, 1, 10)
 PUBLIC_COMMANDS = {
     "archive", "check", "completion", "due", "export", "freeze", "import", "monthly",
     "note", "note-edit", "note-rm", "notes", "remove", "rename", "status", "target",
-    "unarchive", "uncheck", "weekly",
+    "unarchive", "uncheck", "unfreeze", "weekly",
 }  # fmt: skip
 
 # commands whose first argument is an existing habit name (update when adding such a command)
@@ -26,6 +26,7 @@ HABIT_COMMANDS = {
     "target",
     "unarchive",
     "uncheck",
+    "unfreeze",
 }
 
 

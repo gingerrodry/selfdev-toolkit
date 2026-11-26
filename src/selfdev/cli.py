@@ -30,6 +30,10 @@ def build_parser() -> argparse.ArgumentParser:
     du = sub.add_parser("due", help="list habits not yet checked in today")
     du.add_argument("--json", action="store_true", help="machine-readable output")
 
+    uf = sub.add_parser("unfreeze", help="undo a freeze (default: today)")
+    uf.add_argument("habit")
+    uf.add_argument("--date", help="frozen day to undo, YYYY-MM-DD (default: today)")
+
     st = sub.add_parser("status", help="show streaks for all habits")
     st.add_argument("--json", action="store_true", help="machine-readable output")
     st.add_argument("--all", action="store_true", help="include archived habits")
@@ -136,6 +140,17 @@ def main(argv: list[str] | None = None, today: date | None = None) -> int:
             return 2
         store.save(path, data)
         print(f"Froze '{args.habit}' on {day.isoformat()}. Streak is protected for that day.")
+    elif args.cmd == "unfreeze":
+        try:
+            day = date.fromisoformat(args.date) if args.date else today
+        except ValueError:
+            print("error: --date must look like 2026-11-22", file=sys.stderr)
+            return 2
+        if not habits.unfreeze(data, args.habit, day):
+            print(f"error: '{args.habit}' is not frozen on {day.isoformat()}", file=sys.stderr)
+            return 2
+        store.save(path, data)
+        print(f"Unfroze '{args.habit}' on {day.isoformat()}.")
     elif args.cmd == "uncheck":
         try:
             day = date.fromisoformat(args.date) if args.date else today
